@@ -8,6 +8,7 @@ gem 'coffee-rails', '~> 4.1.0'
 gem 'jquery-rails'
 gem 'devise'
 gem 'bower-rails'
+gem 'faker'
 
 group :development, :test do
   gem 'byebug'
