@@ -2,38 +2,40 @@ class CustomerSearchTerm
   attr_reader :where_clause, :where_args, :order
 
   def initialize(search_term)
-    search_term = search_term.downcase
     @where_clause = ""
     @where_args = {}
+    @search_term = search_term.downcase
 
-    if search_term =~ /@/
-      build_for_email_search(search_term)
+    if @search_term =~ /@/
+      build_for_email_search
     else
-      build_for_name_search(search_term)
+      build_for_name_search
     end
   end
 
   private
 
-  def build_for_email_search(search_term)
+  attr_reader :search_term
+
+  def build_for_email_search
     @where_clause << case_insensitive_search(:first_name)
-    @where_args[:first_name] = starts_with(extract_name(search_term))
+    @where_args[:first_name] = starts_with(extracted_name)
 
     @where_clause << " OR #{case_insensitive_search(:last_name)}"
-    @where_args[:last_name] = starts_with(extract_name(search_term))
+    @where_args[:last_name] = starts_with(extracted_name)
 
     @where_clause << " OR #{case_insensitive_search(:email)}"
     @where_args[:email] = search_term
 
-    @order = "LOWER(email) = #{quote_term(search_term)} DESC, last_name ASC"
+    @order = "LOWER(email) = #{quoted_term} DESC, last_name ASC"
   end
 
-  def build_for_name_search(search_term)
+  def build_for_name_search
     @where_clause << case_insensitive_search(:first_name)
-    @where_args[:first_name] = starts_with(search_term)
+    @where_args[:first_name] = starts_with
 
     @where_clause << " OR #{case_insensitive_search(:last_name)}"
-    @where_args[:last_name] = starts_with(search_term)
+    @where_args[:last_name] = starts_with
 
     @order = "last_name ASC"
   end
@@ -42,15 +44,15 @@ class CustomerSearchTerm
     "LOWER(#{field_name}) LIKE :#{field_name}"
   end
 
-  def starts_with(search_term)
-    "#{search_term}%"
+  def starts_with(term = search_term)
+    "#{term}%"
   end
 
-  def extract_name(email)
-    email.gsub(/@.*$/, '').gsub(/[0-9]+/, '')
+  def extracted_name
+    @_extracted_name ||= search_term.gsub(/@.*$/, '').gsub(/[0-9]+/, '')
   end
 
-  def quote_term(search_term)
-    ActiveRecord::Base.connection.quote(search_term)
+  def quoted_term
+    @_quoted_term ||= ActiveRecord::Base.connection.quote(search_term)
   end
 end
