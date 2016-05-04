@@ -19,6 +19,8 @@
     <h1 class="h3">Results</h1>
   </header>
 
+  <%= render "pager", keywords: params[:keywords], page: @page %>
+
   <ol class="list-group">
     <% @customers.each do |customer| %>
       <li class="list-group-item clearfix">
@@ -34,4 +36,7 @@
       </li>
     <% end %>
   </ol>
+
+  <%= render "pager", keywords: params[:keywords], page: @page %>
+
 </section>
